@@ -72,3 +72,25 @@ class AccountUpdate:
                 element_list.append(element)
             result.positions = element_list
         return result
+
+
+class AccountConfigUpdate:
+    def __init__(self):
+        self.eventType = ""
+        self.eventTime = 0
+        self.transactionTime = 0
+        self.symbol = ""
+        self.leverage = 0
+
+    @staticmethod
+    def json_parse(json_data):
+        result = AccountConfigUpdate()
+        result.eventType = json_data.get_string("e")
+        result.eventTime = json_data.get_int("E")
+        result.transactionTime = json_data.get_int("T")
+
+        ac = json_data.get_object("ac")
+        result.symbol = ac.get_string("s")
+        result.leverage = ac.get_string("l")
+
+        return result

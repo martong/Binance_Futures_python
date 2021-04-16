@@ -91,7 +91,7 @@ class WebsocketConnection:
             self.ws.close()
             self.ws = None
         self.delay_in_second = delay_in_second
-        self.logger.warning("[Sub][" + str(self.id) + "] Reconnecting after "
+        self.logger.debug("[Sub][" + str(self.id) + "] Reconnecting after "
                             + str(self.delay_in_second) + " seconds later")
 
     def re_connect(self):
@@ -129,18 +129,17 @@ class WebsocketConnection:
 
     def on_error(self, error_message):
         if self.request.error_handler is not None:
-            print('error')
             exception = BinanceApiException(BinanceApiException.SUBSCRIPTION_ERROR, error_message)
             self.request.error_handler(exception)
         self.logger.error("[Sub][" + str(self.id) + "] " + str(error_message))
 
     def on_failure(self, error):
-        print('on_failure')
         self.on_error("Unexpected error: " + str(error))
         self.close_on_error()
 
     def on_message(self, message):
         self.last_receive_time = get_current_timestamp()
+
         json_wrapper = parse_json_from_string(message)
 
         if json_wrapper.contain_key("status") and json_wrapper.get_string("status") != "ok":
@@ -152,35 +151,35 @@ class WebsocketConnection:
             error_msg = json_wrapper.get_string_or_default("err-msg", "Unknown error")
             self.on_error(error_code + ": " + error_msg)
         elif json_wrapper.contain_key("result") and json_wrapper.contain_key("id"):
-            self.__on_receive_response(json_wrapper)
+            self.__on_receive_response(json_wrapper, message)
         else:
-            self.__on_receive_payload(json_wrapper)
+            self.__on_receive_payload(json_wrapper, message)
 
-    def __on_receive_response(self, json_wrapper):
+    def __on_receive_response(self, json_wrapper, message):
         res = None
         try:
             res = json_wrapper.get_int("id")
         except Exception as e:
-            self.on_error("Failed to parse server's response: " + str(e))
+            self.on_error(" resp Failed to parse server's response: " + str(e))
 
         try:
             if self.request.update_callback is not None:
-                self.request.update_callback(SubscribeMessageType.RESPONSE, res)
+                self.request.update_callback(SubscribeMessageType.RESPONSE, res, message)
         except Exception as e:
             self.on_error("Process error: " + str(e)
                      + " You should capture the exception in your error handler")
 
-    def __on_receive_payload(self, json_wrapper):
+    def __on_receive_payload(self, json_wrapper, message):
         res = None
         try:
             if self.request.json_parser is not None:
                 res = self.request.json_parser(json_wrapper)
         except Exception as e:
-            self.on_error("Failed to parse server's response: " + str(e))
+            self.on_error(" payl Failed to parse server's response: " + str(e))
 
         try:
             if self.request.update_callback is not None:
-                self.request.update_callback(SubscribeMessageType.PAYLOAD, res)
+                self.request.update_callback(SubscribeMessageType.PAYLOAD, res, message)
         except Exception as e:
             self.on_error("Process error: " + str(e)
                      + " You should capture the exception in your error handler")

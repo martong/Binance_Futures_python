@@ -290,14 +290,16 @@ class WebsocketRequestImpl(object):
             time.sleep(0.01)
 
         def json_parse(json_wrapper):
-            print("event type: ", json_wrapper.get_string("e"))
-            print(json_wrapper)
+            # print("event type: ", json_wrapper.get_string("e"))
+            # print(json_wrapper)
             if(json_wrapper.get_string("e") == "ACCOUNT_UPDATE"):
                 result = AccountUpdate.json_parse(json_wrapper)
             elif(json_wrapper.get_string("e") == "ORDER_TRADE_UPDATE"):
                 result = OrderUpdate.json_parse(json_wrapper)
             elif(json_wrapper.get_string("e") == "listenKeyExpired"):
                 result = ListenKeyExpired.json_parse(json_wrapper)
+            if(json_wrapper.get_string("e") == "ACCOUNT_CONFIG_UPDATE"):
+                result = AccountConfigUpdate.json_parse(json_wrapper)
             return result
 
         request = WebsocketRequest()

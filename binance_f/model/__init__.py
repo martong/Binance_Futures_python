@@ -33,6 +33,7 @@ from binance_f.model.position import Position
 from binance_f.model.mytrade import MyTrade
 from binance_f.model.income import Income
 from binance_f.model.accountupdate import AccountUpdate
+from binance_f.model.accountupdate import AccountConfigUpdate
 from binance_f.model.orderupdate import OrderUpdate
 from binance_f.model.listenkeyexpired import ListenKeyExpired
 
