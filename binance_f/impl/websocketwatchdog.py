@@ -26,7 +26,7 @@ def watch_dog_job(*args):
 
 class WebSocketWatchDog(threading.Thread):
     mutex = threading.Lock()
-    connection_list = list()
+    connection_list = set()
 
     def __init__(self, is_auto_connect=True, receive_limit_ms=60000, connection_delay_failure=15):
         threading.Thread.__init__(self)
@@ -43,7 +43,7 @@ class WebSocketWatchDog(threading.Thread):
 
     def on_connection_created(self, connection):
         self.mutex.acquire()
-        self.connection_list.append(connection)
+        self.connection_list.add(connection)
         self.mutex.release()
 
     def on_connection_closed(self, connection):
