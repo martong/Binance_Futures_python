@@ -151,11 +151,11 @@ class WebsocketConnection:
             error_msg = json_wrapper.get_string_or_default("err-msg", "Unknown error")
             self.on_error(error_code + ": " + error_msg)
         elif json_wrapper.contain_key("result") and json_wrapper.contain_key("id"):
-            self.__on_receive_response(json_wrapper, message)
+            self.__on_receive_response(json_wrapper, json_wrapper.json_object)
         else:
-            self.__on_receive_payload(json_wrapper, message)
+            self.__on_receive_payload(json_wrapper, json_wrapper.json_object)
 
-    def __on_receive_response(self, json_wrapper, message):
+    def __on_receive_response(self, json_wrapper, json_obj):
         res = None
         try:
             res = json_wrapper.get_int("id")
@@ -164,12 +164,12 @@ class WebsocketConnection:
 
         try:
             if self.request.update_callback is not None:
-                self.request.update_callback(SubscribeMessageType.RESPONSE, res, message)
+                self.request.update_callback(SubscribeMessageType.RESPONSE, res, json_obj)
         except Exception as e:
             self.on_error("Process error: " + str(e)
                      + " You should capture the exception in your error handler")
 
-    def __on_receive_payload(self, json_wrapper, message):
+    def __on_receive_payload(self, json_wrapper, json_obj):
         res = None
         try:
             if self.request.json_parser is not None:
@@ -179,7 +179,7 @@ class WebsocketConnection:
 
         try:
             if self.request.update_callback is not None:
-                self.request.update_callback(SubscribeMessageType.PAYLOAD, res, message)
+                self.request.update_callback(SubscribeMessageType.PAYLOAD, res, json_obj)
         except Exception as e:
             self.on_error("Process error: " + str(e)
                      + " You should capture the exception in your error handler")
