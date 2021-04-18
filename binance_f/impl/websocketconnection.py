@@ -38,6 +38,14 @@ def on_open(ws):
     websocket_connection = websocket_connection_handler[ws]
     websocket_connection.on_open(ws)
 
+def on_ping(ws, frame_data):
+    websocket_connection = websocket_connection_handler[ws]
+    websocket_connection.on_ping()
+
+def on_pong(ws, frame_data):
+    websocket_connection = websocket_connection_handler[ws]
+    websocket_connection.on_pong()
+
 
 connection_id = 0
 
@@ -53,13 +61,20 @@ def websocket_func(*args):
     connection_instance.ws = websocket.WebSocketApp(connection_instance.url,
                                                     on_message=on_message,
                                                     on_error=on_error,
-                                                    on_close=on_close)
+                                                    on_close=on_close,
+                                                    on_open=on_open,
+                                                    on_ping=on_ping,
+                                                    on_pong=on_pong
+                                                    )
     global websocket_connection_handler
     websocket_connection_handler[connection_instance.ws] = connection_instance
     connection_instance.logger.info("[Sub][" + str(connection_instance.id) + "] Connecting...")
     connection_instance.delay_in_second = -1
-    connection_instance.ws.on_open = on_open
-    connection_instance.ws.run_forever(sslopt={"cert_reqs": ssl.CERT_NONE})
+    # Sending a PING to refresh the last_receive_time in on_pong. last_ping_tm
+    # is checked by the watchdog!
+    connection_instance.ws.run_forever(
+        sslopt={"cert_reqs": ssl.CERT_NONE},
+        ping_interval=31, ping_timeout=10)
     connection_instance.logger.info("[Sub][" + str(connection_instance.id) + "] Connection event loop down")
     if connection_instance.state == ConnectionState.CONNECTED:
         connection_instance.state = ConnectionState.IDLE
@@ -119,6 +134,14 @@ class WebsocketConnection:
 
     def on_close(self):
         self.logger.info("[Sub][" + str(self.id) + "] Closed")
+
+    def on_ping(self):
+        self.logger.info("[Sub][" + str(self.id) + "] Ping")
+        self.last_receive_time = get_current_timestamp()
+
+    def on_pong(self):
+        self.logger.info("[Sub][" + str(self.id) + "] Pong")
+        self.last_receive_time = get_current_timestamp()
 
     def on_open(self, ws):
         self.logger.info("[Sub][" + str(self.id) + "] Connected to server")
