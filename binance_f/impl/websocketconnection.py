@@ -1,4 +1,5 @@
 import threading
+import traceback
 import websocket
 import gzip
 import ssl
@@ -185,30 +186,20 @@ class WebsocketConnection:
         res = None
         try:
             res = json_wrapper.get_int("id")
-        except Exception as e:
-            self.on_error(" resp Failed to parse server's response: " + str(e))
-
-        try:
             if self.request.update_callback is not None:
                 self.request.update_callback(SubscribeMessageType.RESPONSE, res, json_obj)
         except Exception as e:
-            self.on_error("Process error: " + str(e)
-                     + " You should capture the exception in your error handler")
+            self.on_error("Process error: {}\n{}".format(str(e), traceback.format_exc()))
 
     def __on_receive_payload(self, json_wrapper, json_obj):
         res = None
         try:
             if self.request.json_parser is not None:
                 res = self.request.json_parser(json_wrapper)
-        except Exception as e:
-            self.on_error(" payl Failed to parse server's response: " + str(e))
-
-        try:
             if self.request.update_callback is not None:
                 self.request.update_callback(SubscribeMessageType.PAYLOAD, res, json_obj)
         except Exception as e:
-            self.on_error("Process error: " + str(e)
-                     + " You should capture the exception in your error handler")
+            self.on_error("Process error: {}\n{}".format(str(e), traceback.format_exc()))
 
         if self.request.auto_close:
             self.close()
