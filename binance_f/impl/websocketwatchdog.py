@@ -41,6 +41,9 @@ class WebSocketWatchDog(threading.Thread):
     def run(self):
         self.scheduler.start()
 
+    def stop(self):
+        self.scheduler.shutdown()
+
     def on_connection_created(self, connection):
         self.mutex.acquire()
         self.connection_list.add(connection)
