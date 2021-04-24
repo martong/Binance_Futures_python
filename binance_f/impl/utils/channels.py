@@ -14,7 +14,7 @@ def aggregate_trade_channel(symbol):
 def mark_price_channel(symbol):
     channel = dict()
     channel["params"] = list()
-    channel["params"].append(symbol + "@markPrice")
+    channel["params"].append(symbol + "@markPrice@1s")
     channel["id"] = get_current_timestamp()
     channel["method"] = "SUBSCRIBE"
     return json.dumps(channel)
